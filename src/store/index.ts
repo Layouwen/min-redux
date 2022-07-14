@@ -1,4 +1,4 @@
-import { createStore } from 'redux';
+import { createStore } from './min-redux';
 
 const countReducer = (state = 0, action) => {
   switch (action.type) {
