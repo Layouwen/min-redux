@@ -1,6 +1,7 @@
 import './App.css'
 import { Component } from 'react'
 import store from './store'
+import './demo/compose.js'
 
 class App extends Component {
   componentDidMount () {

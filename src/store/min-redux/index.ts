@@ -1,4 +1,10 @@
-function createStore (reducer) {
+import { compose } from "redux";
+
+function createStore(reducer, enhancer) {
+  if (enhancer) {
+    return enhancer(createStore)(reducer);
+  }
+
   let stateStore;
   let subscribeListens = [];
 
@@ -8,17 +14,17 @@ function createStore (reducer) {
 
   const dispatch = (action) => {
     stateStore = reducer(stateStore, action);
-    subscribeListens.forEach(listen => listen());
+    subscribeListens.forEach((listen) => listen());
   };
 
   const subscribe = (listen) => {
     subscribeListens.push(listen);
     return () => {
-      subscribeListens = subscribeListens.filter(l => l !== listen);
+      subscribeListens = subscribeListens.filter((l) => l !== listen);
     };
   };
 
-  dispatch({type: '@@redux/INIT'});
+  dispatch({ type: "@@redux/INIT" });
 
   return {
     getState,
@@ -27,6 +33,25 @@ function createStore (reducer) {
   };
 }
 
-export {
-  createStore,
-};
+function applyMiddleware(...middlewares) {
+  return (createStore) => (reducer) => {
+    const store = createStore(reducer);
+    const dispatch = store.dispatch;
+
+    const midApi = {
+      getState: store.getState,
+      dispatch: (action, ...args) => dispatch(action, ...args),
+    };
+
+    const middlewareChain = middlewares.map((middleware) => middleware(midApi));
+
+    const dispatchWithMiddleware = compose(...middlewareChain)(dispatch);
+
+    return {
+      ...store,
+      dispatch: dispatchWithMiddleware,
+    };
+  };
+}
+
+export { createStore, applyMiddleware };
